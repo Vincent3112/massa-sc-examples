@@ -4,12 +4,13 @@ import {
   INodeStatus,
   IAccount,
   DefaultProviderUrls,
+  IDatastoreEntryInput,
 } from "@massalabs/massa-web3";
 
 const baseAccount = {
-  publicKey: "5Jwx18K2JXacFoZcPmTWKFgdG1mSdkpBAUnwiyEqsVP9LKyNxR",
-  privateKey: "2SPTTLK6Vgk5zmZEkokqC3wgpKgKpyV5Pu3uncEGawoGyd4yzC",
-  address: "9mvJfA4761u1qT8QwSWcJ4gTDaFP5iSgjQzKMaqTbrWCFo1QM",
+  publicKey: "P12K7yiUkaMWLkfRU4ZfLPJHBYmB7PShRUJiiWp6XbbE3FNnhPSZ",
+  secretKey: "S12LrhEJZoioeUXBGnZaPKNSYKQ1sJQ3igoE6JvhZ8q286yDsePS",
+  address: "A1p2PUhUu7dfTFmG7YRiSKnPTB4L5AycYqeLsrDCUCnJZWMwPuQ",
 } as IAccount;
 
 type TNodeStatus = INodeStatus | null;
@@ -20,7 +21,7 @@ const web3Client = ClientFactory.createDefaultClient(
   baseAccount
 );
 
-const sc_addr = "uponGHM3vUwVymTrjib5XGnez24FnGU1nJnyMRYXNcPwPH8ZU"
+const sc_addr = "A12GXA7SA6oUjwJm2CtfHf6hCMnCrcWnU9YemQY2ofwF88o9T3A3";
 
 function NodeInfo() {
   const [nodeStatus, setNodeStatus] = useState<TNodeStatus>(null);
@@ -60,7 +61,11 @@ function NodeInfo() {
 
 function Square(props: any) {
   return (
-    <button className="square" onClick={props.onClick} id={`square_${props.squareIndex}`}>
+    <button
+      className="square"
+      onClick={props.onClick}
+      id={`square_${props.squareIndex}`}
+    >
       {props.value}
     </button>
   );
@@ -86,34 +91,41 @@ class Board extends React.Component<any, any> {
   }
 
   refresh() {
-    web3Client.smartContracts().getDatastoreEntry(sc_addr, "gameState").then((res) => {
-      if (res) {
-        let gameState = res.candidate.split(',')
+    web3Client
+      .publicApi()
+      .getDatastoreEntries([
+        { address: sc_addr, key: "gameState" } as IDatastoreEntryInput,
+      ])
+      .then((res: any) => {
+        if (res) {
+          console.log(res);
+          let gameState = res.candidate?.split(",");
 
-        let xIsNext = true;
-        let squares = Array(9).fill(null);
-        for(let vi= 0 ; vi < gameState.length ; ++vi) {
-          if (gameState[vi] === 'n') {
-            squares[vi] = null;
+          let xIsNext = true;
+          let squares = Array(9).fill(null);
+          for (let vi = 0; vi < gameState?.length; ++vi) {
+            if (gameState[vi] === "n") {
+              squares[vi] = null;
+            } else {
+              squares[vi] = gameState[vi];
+              xIsNext = !xIsNext;
+            }
           }
-          else {
-            squares[vi] = gameState[vi];
-            xIsNext = !xIsNext;
-          }
+          this.setState({
+            squares: squares,
+            xIsNext: xIsNext,
+          });
         }
-        this.setState({
-          squares: squares,
-          xIsNext: xIsNext,
-        });
-      }
-    });
+      });
   }
 
   handleClick(i: number) {
-    var call_params_str = `{"index":${i}}`
+    var call_params_str = `{"index":${i}}`;
 
-    web3Client.smartContracts().callSmartContract(
-      {
+    web3Client
+      .smartContracts()
+      .callSmartContract(
+        {
           /// storage fee for taking place in books
           fee: 0,
           /// The maximum amount of gas that the execution of the contract is allowed to cost.
@@ -129,17 +141,20 @@ class Board extends React.Component<any, any> {
           /// Target function name. No function is called if empty.
           functionName: "play",
           /// Parameter to pass to the target function
-          parameter: call_params_str
-      },
-      baseAccount
-    ).then(function(txid) {
+          parameter: call_params_str,
+        },
+        baseAccount
+      )
+      .then(function (txid) {
         console.log("handleClick ", call_params_str, txid);
-    });
+      });
   }
 
   reset() {
-    web3Client.smartContracts().callSmartContract(
-      {
+    web3Client
+      .smartContracts()
+      .callSmartContract(
+        {
           /// storage fee for taking place in books
           fee: 0,
           /// The maximum amount of gas that the execution of the contract is allowed to cost.
@@ -155,12 +170,13 @@ class Board extends React.Component<any, any> {
           /// Target function name. No function is called if empty.
           functionName: "initialize",
           /// Parameter to pass to the target function
-          parameter: ""
-      },
-      baseAccount
-    ).then(function(txid) {
+          parameter: "",
+        },
+        baseAccount
+      )
+      .then(function (txid) {
         console.log("handleClick ", "", txid);
-    });
+      });
   }
 
   renderSquare(i: number) {
@@ -201,7 +217,7 @@ class Board extends React.Component<any, any> {
           {this.renderSquare(8)}
         </div>
         <div className="restart-button">
-        <button onClick={() => this.reset()}>Restart Game</button>
+          <button onClick={() => this.reset()}>Restart Game</button>
         </div>
       </div>
     );
