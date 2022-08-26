@@ -8,3 +8,8 @@ This repository contains examples of smart-contracts Massa
 - [mrc](https://github.com/massalabs/massa-sc-examples/tree/main/mrc) contains an example implementation of a MRC20 for Massa (equivalent of Ethereum's [ERC20](https://fr.wikipedia.org/wiki/ERC20)).
 - [website](https://github.com/massalabs/massa-sc-examples/tree/main/website) contains an example of how to use Massa's smart-contract system to host a decentralized website
 - [swap](https://github.com/massalabs/massa-sc-examples/tree/main/swap) (*WIP*) contains a swap implementation.
+
+
+# projects folder
+
+In this folder you will find additional projects I used in order to complete task I was given.
